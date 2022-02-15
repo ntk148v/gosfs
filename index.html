@@ -1,0 +1,72 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<title>Directory listing for {{ .DisplayPath }}</title>
+<style type="text/css">
+    * {
+        font-family: Helvetica;
+        font-size: 16px;
+    }
+
+    a {
+        text-decoration: none;
+    }
+
+    a:link {
+        text-decoration: none;
+        font-weight: bold;
+        color: #0000ff;
+    }
+
+    a:visited {
+        text-decoration: none;
+        font-weight: bold;
+        color: #0000ff;
+    }
+
+    a:active {
+        text-decoration: none;
+        font-weight: bold;
+        color: #0000ff;
+    }
+
+    a:hover {
+        text-decoration: none;
+        font-weight: bold;
+        color: #ff0000;
+    }
+
+    table {
+        border-collapse: separate;
+    }
+
+    th,
+    td {
+        padding: 0px 10px;
+    }
+</style>
+
+<body>
+    <h2>Directory listing for {{ .DisplayPath }}</h2>
+    <form enctype="multipart/form-data" method="post">
+        <input name="file" type="file" multiple />
+        <input type="submit" value="upload" />
+    </form>
+    <hr>
+    <table>
+        <tr>
+            <td><img src="data:image/gif;base64,R0lGODlhGAAYAMIAAP///7+/v7u7u1ZWVTc3NwAAAAAAAAAAACH+RFRoaXMgaWNvbiBpcyBpbiB0aGUgcHVibGljIGRvbWFpbi4gMTk5NSBLZXZpbiBIdWdoZXMsIGtldmluaEBlaXQuY29tACH5BAEAAAEALAAAAAAYABgAAANKGLrc/jBKNgIhM4rLcaZWd33KJnJkdaKZuXqTugYFeSpFTVpLnj86oM/n+DWGyCAuyUQymlDiMtrsUavP6xCizUB3NCW4Ny6bJwkAOw=="
+                    alt="[PARENTDIR]" width="24" height="24"></td>
+            <td><a href="../">Parent Directory</a></td>
+        </tr>
+        {{ range .Files }}
+        <tr>
+            <td><img src="{{ .DirImage }}" width="24" height="24"></td>
+            <td><a href="{{ .Link }}">{{ .Name | htmlescaper }}</a></td>
+            <td style="text-align:right; font-weight: bold; color:#FF0000">{{ .Size }}</td>
+            <td style="text-align:right; font-weight: bold;">{{ .ModTime }}</td>
+        </tr>
+        {{ end }}
+    </table>
+</body>
+
+</html>
