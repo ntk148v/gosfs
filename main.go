@@ -4,10 +4,13 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"html/template"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strconv"
 	"sync/atomic"
 	"syscall"
@@ -42,34 +45,57 @@ type Dir struct {
 	Files       []File
 }
 
-func (c *controller) index() http.Handler {
-	return http.FileServer(http.Dir(c.rootDir))
-}
+func (c *controller) index(w http.ResponseWriter, r *http.Request) {
+	// Get path to render subdirectories as well as root
+	path := filepath.Join(c.rootDir, r.URL.Path)
+	file, _ := os.Stat(path)
 
-// func (c *controller) listDir() (Dir, error) {
-// 	var dir Dir
-// 	dir = Dir{
-// 		DisplayPath: c.rootDir,
-// 		Files:       []File{},
-// 	}
-// 	files, err := ioutil.ReadDir(c.rootDir)
-// 	if err != nil {
-// 		return dir, err
-// 	}
-// 	for _, file := range files {
-// 		var f File
-// 		if file.IsDir() {
-// 			f.Name = file.Name() + "/"
-// 			f.Link = file.Name() + "/"
-// 			f.Size = ""
-// 			f.ModTime = ""
-// 		} else {
-// 			f.Name = file.Name()
-// 			f.Size = strconv.Itoa(int(file.Size()))
-// 			f.ModTime = file.ModTime().String()
-// 		}
-// 	}
-// }
+	// If there is file type, serve it directly
+	if !file.Mode().IsDir() {
+		http.ServeFile(w, r, path)
+		return
+	}
+	// Collect data
+	dir, err := c.listDir(path)
+	if err != nil {
+		c.logger.Println(err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	t := template.Must(template.ParseFiles("index.html"))
+	err = t.ExecuteTemplate(w, "index.html", dir)
+	if err != nil {
+		c.logger.Println(err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+func (c *controller) listDir(root string) (Dir, error) {
+	dir := Dir{
+		DisplayPath: root,
+		Files:       []File{},
+	}
+	files, err := ioutil.ReadDir(root)
+	if err != nil {
+		return dir, err
+	}
+	for _, file := range files {
+		var f File
+		if file.IsDir() {
+			f.Name = file.Name() + "/"
+			f.Link = file.Name() + "/"
+			f.Size = ""
+			f.ModTime = ""
+		} else {
+			f.Name = file.Name()
+			f.Link = file.Name()
+			f.Size = strconv.Itoa(int(file.Size()))
+			f.ModTime = file.ModTime().String()
+		}
+		dir.Files = append(dir.Files, f)
+	}
+	return dir, nil
+}
 
 func (c *controller) healthz(w http.ResponseWriter, req *http.Request) {
 	if h := atomic.LoadInt64(&c.healthy); h == 0 {
@@ -167,8 +193,7 @@ func main() {
 		nextRequestID: func() string { return strconv.FormatInt(time.Now().UnixNano(), 36) },
 	}
 	router := http.NewServeMux()
-	router.Handle("/", c.index())
-	router.HandleFunc("/test", c.listDirectory)
+	router.HandleFunc("/", c.index)
 	router.HandleFunc("/healthz", c.healthz)
 
 	listenAddr := fmt.Sprintf("%s:%d", bindAddr, listenPort)

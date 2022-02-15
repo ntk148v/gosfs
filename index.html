@@ -54,13 +54,11 @@
     <hr>
     <table>
         <tr>
-            <td><img src="data:image/gif;base64,R0lGODlhGAAYAMIAAP///7+/v7u7u1ZWVTc3NwAAAAAAAAAAACH+RFRoaXMgaWNvbiBpcyBpbiB0aGUgcHVibGljIGRvbWFpbi4gMTk5NSBLZXZpbiBIdWdoZXMsIGtldmluaEBlaXQuY29tACH5BAEAAAEALAAAAAAYABgAAANKGLrc/jBKNgIhM4rLcaZWd33KJnJkdaKZuXqTugYFeSpFTVpLnj86oM/n+DWGyCAuyUQymlDiMtrsUavP6xCizUB3NCW4Ny6bJwkAOw=="
-                    alt="[PARENTDIR]" width="24" height="24"></td>
-            <td><a href="../">Parent Directory</a></td>
+            <td><a href="../">..</a></td>
         </tr>
         {{ range .Files }}
         <tr>
-            <td><a href="{{ .Link }}">{{ .Name | htmlescaper }}</a></td>
+            <td><a href="{{ .Link }}">{{ .Name }}</a></td>
             <td style="text-align:right; font-weight: bold; color:#FF0000">{{ .Size }}</td>
             <td style="text-align:right; font-weight: bold;">{{ .ModTime }}</td>
         </tr>
