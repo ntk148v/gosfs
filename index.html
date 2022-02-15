@@ -41,13 +41,13 @@
 
     th,
     td {
-        padding: 0px 10px;
+        padding: 0px 20px;
     }
 </style>
 
 <body>
     <h2>Directory listing for {{ .DisplayPath }}</h2>
-    <form enctype="multipart/form-data" method="post">
+    <form enctype="multipart/form-data" method="post" action="/upload">
         <input name="file" type="file" multiple />
         <input type="submit" value="upload" />
     </form>

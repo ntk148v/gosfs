@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -45,6 +46,20 @@ type Dir struct {
 	Files       []File
 }
 
+func formatBytes(b int64) string {
+	const unit = 1000
+	if b < unit {
+		return fmt.Sprintf("%d B", b)
+	}
+	div, exp := int64(unit), 0
+	for n := b / unit; n >= unit; n /= unit {
+		div *= unit
+		exp++
+	}
+	return fmt.Sprintf("%.1f %cB",
+		float64(b)/float64(div), "kMGTPE"[exp])
+}
+
 func (c *controller) index(w http.ResponseWriter, r *http.Request) {
 	// Get path to render subdirectories as well as root
 	path := filepath.Join(c.rootDir, r.URL.Path)
@@ -58,18 +73,61 @@ func (c *controller) index(w http.ResponseWriter, r *http.Request) {
 	// Collect data
 	dir, err := c.listDir(path)
 	if err != nil {
-		c.logger.Println(err.Error())
+		c.logger.Println("Error listing files in directory", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	t := template.Must(template.ParseFiles("index.html"))
 	err = t.ExecuteTemplate(w, "index.html", dir)
 	if err != nil {
-		c.logger.Println(err.Error())
+		c.logger.Println("Error rendering index page:", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
+
+func (c *controller) upload(w http.ResponseWriter, r *http.Request) {
+	// maximum upload of 5MB file
+	r.ParseMultipartForm(int64(c.maxUploadSize))
+
+	// Get handler for filename, size and headers
+	file, handler, err := r.FormFile("file")
+	if err != nil {
+		c.logger.Println("Error retrieveing the file:", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	defer file.Close()
+
+	if handler.Size > int64(c.maxUploadSize) {
+		w.WriteHeader(http.StatusRequestEntityTooLarge)
+		return
+	}
+
+	c.logger.Printf("Uploaded file: %+v, file size: %+v, MIME header: %+v\n",
+		handler.Filename, handler.Size, handler.Header)
+
+	// Create file
+	dst, err := os.OpenFile(filepath.Join(c.rootDir, handler.Filename),
+		os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
+	if err != nil {
+		c.logger.Println("Error creating a new file:", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	defer dst.Close()
+	// Copy the uploaded file to the created file on the filesystem
+	if _, err = io.Copy(dst, file); err != nil {
+		c.logger.Println("Error copying new file", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/", http.StatusFound)
+}
+
 func (c *controller) listDir(root string) (Dir, error) {
 	dir := Dir{
 		DisplayPath: root,
@@ -89,8 +147,8 @@ func (c *controller) listDir(root string) (Dir, error) {
 		} else {
 			f.Name = file.Name()
 			f.Link = file.Name()
-			f.Size = strconv.Itoa(int(file.Size()))
-			f.ModTime = file.ModTime().String()
+			f.Size = formatBytes(file.Size())
+			f.ModTime = file.ModTime().Format("Jan 2, 2006 at 3:04pm")
 		}
 		dir.Files = append(dir.Files, f)
 	}
@@ -194,6 +252,7 @@ func main() {
 	}
 	router := http.NewServeMux()
 	router.HandleFunc("/", c.index)
+	router.HandleFunc("/upload", c.upload)
 	router.HandleFunc("/healthz", c.healthz)
 
 	listenAddr := fmt.Sprintf("%s:%d", bindAddr, listenPort)
