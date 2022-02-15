@@ -30,15 +30,16 @@ type controller struct {
 	healthy       int64
 }
 
+type File struct {
+	Link    string
+	Size    string
+	ModTime string
+	Name    string
+}
+
 type Dir struct {
 	DisplayPath string
-	Files       []struct {
-		DirImage string
-		Link     string
-		Size     int
-		ModTime  string
-		Name     string
-	}
+	Files       []File
 }
 
 func (c *controller) index() http.Handler {
@@ -49,16 +50,24 @@ func (c *controller) index() http.Handler {
 // 	var dir Dir
 // 	dir = Dir{
 // 		DisplayPath: c.rootDir,
+// 		Files:       []File{},
 // 	}
 // 	files, err := ioutil.ReadDir(c.rootDir)
 // 	if err != nil {
 // 		return dir, err
 // 	}
 // 	for _, file := range files {
-// 		var dirImage string
-// 		dirImage = "dirimage = 'data:image/gif;base64,R0lGODlhGAAYAMIAAP///7+/v7u7u1ZWVTc3NwAAAAAAAAAAACH+RFRoaXMgaWNvbiBpcyBpbiB0aGUgcHVibGljIGRvbWFpbi4gMTk5NSBLZXZpbiBIdWdoZXMsIGtldmluaEBlaXQuY29tACH5BAEAAAEALAAAAAAYABgAAANdGLrc/jAuQaulQwYBuv9cFnFfSYoPWXoq2qgrALsTYN+4QOg6veFAG2FIdMCCNgvBiAxWlq8mUseUBqGMoxWArW1xXYXWGv59b+WxNH1GV9vsNvd9jsMhxLw+70gAADs='"
-// 		if file.IsDir():
-
+// 		var f File
+// 		if file.IsDir() {
+// 			f.Name = file.Name() + "/"
+// 			f.Link = file.Name() + "/"
+// 			f.Size = ""
+// 			f.ModTime = ""
+// 		} else {
+// 			f.Name = file.Name()
+// 			f.Size = strconv.Itoa(int(file.Size()))
+// 			f.ModTime = file.ModTime().String()
+// 		}
 // 	}
 // }
 

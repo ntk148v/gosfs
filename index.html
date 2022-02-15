@@ -60,7 +60,6 @@
         </tr>
         {{ range .Files }}
         <tr>
-            <td><img src="{{ .DirImage }}" width="24" height="24"></td>
             <td><a href="{{ .Link }}">{{ .Name | htmlescaper }}</a></td>
             <td style="text-align:right; font-weight: bold; color:#FF0000">{{ .Size }}</td>
             <td style="text-align:right; font-weight: bold;">{{ .ModTime }}</td>
