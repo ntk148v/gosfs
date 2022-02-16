@@ -13,6 +13,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"sync/atomic"
 	"syscall"
 	"time"
@@ -66,9 +67,8 @@ func (c *controller) index(w http.ResponseWriter, r *http.Request) {
 	file, _ := os.Stat(path)
 
 	// If there is file type, serve it directly
-	if !file.Mode().IsDir() {
+	if file != nil && !file.Mode().IsDir() {
 		http.ServeFile(w, r, path)
-		return
 	}
 	// Collect data
 	dir, err := c.listDir(path)
@@ -109,7 +109,9 @@ func (c *controller) upload(w http.ResponseWriter, r *http.Request) {
 		handler.Filename, handler.Size, handler.Header)
 
 	// Create file
-	dst, err := os.OpenFile(filepath.Join(c.rootDir, handler.Filename),
+	dst, err := os.OpenFile(filepath.Join(c.rootDir,
+		strings.TrimPrefix(r.Referer(), r.Header.Get("Origin")),
+		handler.Filename),
 		os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
 		c.logger.Println("Error creating a new file:", err)
@@ -125,7 +127,7 @@ func (c *controller) upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/", http.StatusFound)
+	http.Redirect(w, r, r.Referer(), http.StatusFound)
 }
 
 func (c *controller) listDir(root string) (Dir, error) {
@@ -139,16 +141,13 @@ func (c *controller) listDir(root string) (Dir, error) {
 	}
 	for _, file := range files {
 		var f File
+		f.ModTime = file.ModTime().Format("15 Feb 18:30")
 		if file.IsDir() {
 			f.Name = file.Name() + "/"
-			f.Link = file.Name() + "/"
-			f.Size = ""
-			f.ModTime = ""
+			f.Size = "-"
 		} else {
 			f.Name = file.Name()
-			f.Link = file.Name()
 			f.Size = formatBytes(file.Size())
-			f.ModTime = file.ModTime().Format("Jan 2, 2006 at 3:04pm")
 		}
 		dir.Files = append(dir.Files, f)
 	}
@@ -248,6 +247,7 @@ func main() {
 	c := &controller{
 		logger:        logger,
 		rootDir:       rootDir,
+		maxUploadSize: maxUploadSize,
 		nextRequestID: func() string { return strconv.FormatInt(time.Now().UnixNano(), 36) },
 	}
 	router := http.NewServeMux()

@@ -1,6 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <html>
 <title>Directory listing for {{ .DisplayPath }}</title>
+<link rel="icon" href="data:,">
 <style type="text/css">
     * {
         font-family: Helvetica;
@@ -41,7 +42,7 @@
 
     th,
     td {
-        padding: 0px 20px;
+        padding: 0px 10px;
     }
 </style>
 
@@ -58,7 +59,7 @@
         </tr>
         {{ range .Files }}
         <tr>
-            <td><a href="{{ .Link }}">{{ .Name }}</a></td>
+            <td><a href="{{ .Name }}/">{{ .Name }}</a></td>
             <td style="text-align:right; font-weight: bold; color:#FF0000">{{ .Size }}</td>
             <td style="text-align:right; font-weight: bold;">{{ .ModTime }}</td>
         </tr>
