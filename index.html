@@ -15,25 +15,25 @@
     a:link {
         text-decoration: none;
         font-weight: bold;
-        color: #0000ff;
+        color: #005cc5;
     }
 
     a:visited {
         text-decoration: none;
         font-weight: bold;
-        color: #0000ff;
+        color: #005cc5;
     }
 
     a:active {
         text-decoration: none;
         font-weight: bold;
-        color: #0000ff;
+        color: #005cc5;
     }
 
     a:hover {
         text-decoration: none;
         font-weight: bold;
-        color: #ff0000;
+        color: #d73a49;
     }
 
     table {
@@ -43,6 +43,18 @@
     th,
     td {
         padding: 0px 10px;
+    }
+
+    .size {
+        text-align: right;
+        font-weight: bold;
+        color: #22863a;
+    }
+
+    .time {
+        text-align: right;
+        font-weight: bold;
+        color: #e36209;
     }
 </style>
 
@@ -60,8 +72,8 @@
         {{ range .Files }}
         <tr>
             <td><a href="{{ .Name }}/">{{ .Name }}</a></td>
-            <td style="text-align:right; font-weight: bold; color:#FF0000">{{ .Size }}</td>
-            <td style="text-align:right; font-weight: bold;">{{ .ModTime }}</td>
+            <td class="size">{{ .Size }}</td>
+            <td class="time">{{ .ModTime }}</td>
         </tr>
         {{ end }}
     </table>

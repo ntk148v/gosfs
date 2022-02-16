@@ -62,6 +62,10 @@ func formatBytes(b int64) string {
 }
 
 func (c *controller) index(w http.ResponseWriter, r *http.Request) {
+	// Ignore favicon
+	if r.URL.Path == "/favicon.io" {
+		return
+	}
 	// Get path to render subdirectories as well as root
 	path := filepath.Join(c.rootDir, r.URL.Path)
 	file, _ := os.Stat(path)
@@ -141,7 +145,7 @@ func (c *controller) listDir(root string) (Dir, error) {
 	}
 	for _, file := range files {
 		var f File
-		f.ModTime = file.ModTime().Format("15 Feb 18:30")
+		f.ModTime = file.ModTime().Format("2006-01-02 15:04")
 		if file.IsDir() {
 			f.Name = file.Name() + "/"
 			f.Size = "-"
