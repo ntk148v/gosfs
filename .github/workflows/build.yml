@@ -29,8 +29,8 @@ jobs:
 
       - name: Build
         if: ${{ matrix.os != 'windows' }}
-        run: GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -ldflags "-s -w" -o build/gosfs-${{ matrix.os }}-${{ matrix.arch }}
+        run: GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -ldflags "-s -w"
 
       - name: Build windows
         if: ${{ matrix.os == 'windows' }}
-        run: GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -ldflags "-s -w" -o build/gosfs-${{ matrix.os }}-${{ matrix.arch }}.exe
+        run: GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -ldflags "-s -w"

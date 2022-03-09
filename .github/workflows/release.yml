@@ -2,10 +2,6 @@
 name: Tagged Release
 
 on:
-  workflow_run:
-    workflows: ["Build"]
-    types:
-      - completed
   push:
     tags:
       - "v*"
@@ -15,6 +11,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17
+
+      - name: Build
+        run: |
+          GOOS=windows GOARCH=386 go build -ldflags "-s -w" -o build/gosfs-windows-x86.exe *.go
+          GOOS=windows GOARCH=amd64 go build -ldflags "-s -w" -o build/gosfs-windows.exe *.go
+          GOOS=linux GOARCH=386 go build -ldflags "-s -w" -o build/gosfs-linux-x86 *.go
+          GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -o build/gosfs-linux *.go
+          GOOS=darwin GOARCH=amd64 go build -ldflags "-s -w" -o build/gosfs-darwin *.go
+
       - name: Release
         uses: marvinpinto/action-automatic-releases@latest
         with:
