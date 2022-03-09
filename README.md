@@ -1,6 +1,6 @@
 <div align="center">
 	<h1>Golang SFS (Golang simple file server)</h1>
-	<blockquote align="center">Simple HTTP server written in pure Golang to serve and upload files..</blockquote>
+	<blockquote align="center">Simple HTTP server written in pure Golang to serve and upload files</blockquote>
 	<p>
 		<a href="https://github.com/ntk148v/gosfs/blob/master/LICENSE">
 			<img alt="GitHub license" src="https://img.shields.io/github/license/ntk148v/gosfs?style=for-the-badge">
