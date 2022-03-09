@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	_ "embed"
 	"flag"
 	"fmt"
 	"html/template"
@@ -26,6 +27,9 @@ const (
 	DefaultReadTimeout   = 10 * time.Second
 	DefaultWriteTimeout  = 10 * time.Second
 )
+
+//go:embed index.html
+var indexContent string
 
 type controller struct {
 	logger        *log.Logger
@@ -81,9 +85,13 @@ func (c *controller) index(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	t := template.Must(template.ParseFiles("index.html"))
-	err = t.ExecuteTemplate(w, "index.html", dir)
+	t, err := template.New("index").Parse(indexContent)
 	if err != nil {
+		c.logger.Println("Error rendering index page:", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if err = t.Execute(w, dir); err != nil {
 		c.logger.Println("Error rendering index page:", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
