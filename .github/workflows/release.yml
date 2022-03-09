@@ -2,6 +2,10 @@
 name: Tagged Release
 
 on:
+  workflow_run:
+    workflows: ["Build"]
+    types:
+      - completed
   push:
     tags:
       - "v*"
@@ -9,7 +13,7 @@ on:
 jobs:
   tagged-release:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Release
         uses: marvinpinto/action-automatic-releases@latest
