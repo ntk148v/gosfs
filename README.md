@@ -22,6 +22,12 @@
 	</p><br>
 </div>
 
+## Feature
+
+- Pure Golang
+- Support upload utiple files
+- Support nested directories
+
 ## Getting started
 
 ```bash
@@ -30,16 +36,16 @@ Usage of /tmp/go-build2896055445/b001/exe/main:
   -bind-addr string
         IP address to bind (default "0.0.0.0")
   -max-size int
-        max size of uploaded file (byte) (default 5242880)
+        max size of uploaded file (byte) (default 16777216)
   -port int
         port number to listen on (default 2690)
   -root-dir string
         root directory (default "/tmp/gosfs")
+
+$ go run main.go
+http: 2022/03/09 17:18:58 Server is starting...
+http: 2022/03/09 17:18:58 Server is ready to handle requests at "0.0.0.0:2690"
 ```
-
-### TODO
-
-- Multiple upload
 
 ## Screenshots
 

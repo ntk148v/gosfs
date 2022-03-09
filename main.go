@@ -91,7 +91,7 @@ func (c *controller) index(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *controller) upload(w http.ResponseWriter, r *http.Request) {
-	// maximum upload of 5MB file
+	// maximum upload of 16 MiB file
 	r.ParseMultipartForm(int64(c.maxUploadSize))
 
 	// Get handler for filename, size and headers
