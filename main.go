@@ -22,7 +22,7 @@ import (
 const (
 	DefaultBindAddr      = "0.0.0.0"
 	DefaultPort          = 2690
-	DefaultMaxUploadSize = 5242880 // 5MiB
+	DefaultMaxUploadSize = 16 << 20 // 16MiB
 	DefaultReadTimeout   = 10 * time.Second
 	DefaultWriteTimeout  = 10 * time.Second
 )
@@ -95,40 +95,40 @@ func (c *controller) upload(w http.ResponseWriter, r *http.Request) {
 	r.ParseMultipartForm(int64(c.maxUploadSize))
 
 	// Get handler for filename, size and headers
-	file, handler, err := r.FormFile("file")
-	if err != nil {
-		c.logger.Println("Error retrieveing the file:", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	fhs := r.MultipartForm.File["files"]
+	for _, fh := range fhs {
+		if fh.Size > int64(c.maxUploadSize) {
+			w.WriteHeader(http.StatusRequestEntityTooLarge)
+			return
+		}
+		file, err := fh.Open()
+		if err != nil {
+			c.logger.Println("Error retrieveing the file:", err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		defer file.Close()
+		c.logger.Printf("Uploaded file: %+v, file size: %+v, MIME header: %+v\n",
+			fh.Filename, fh.Size, fh.Header)
 
-	defer file.Close()
+		// Create file
+		dst, err := os.OpenFile(filepath.Join(c.rootDir,
+			strings.TrimPrefix(r.Referer(), r.Header.Get("Origin")),
+			fh.Filename),
+			os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
+		if err != nil {
+			c.logger.Println("Error creating a new file:", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-	if handler.Size > int64(c.maxUploadSize) {
-		w.WriteHeader(http.StatusRequestEntityTooLarge)
-		return
-	}
-
-	c.logger.Printf("Uploaded file: %+v, file size: %+v, MIME header: %+v\n",
-		handler.Filename, handler.Size, handler.Header)
-
-	// Create file
-	dst, err := os.OpenFile(filepath.Join(c.rootDir,
-		strings.TrimPrefix(r.Referer(), r.Header.Get("Origin")),
-		handler.Filename),
-		os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
-	if err != nil {
-		c.logger.Println("Error creating a new file:", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	defer dst.Close()
-	// Copy the uploaded file to the created file on the filesystem
-	if _, err = io.Copy(dst, file); err != nil {
-		c.logger.Println("Error copying new file", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		defer dst.Close()
+		// Copy the uploaded file to the created file on the filesystem
+		if _, err = io.Copy(dst, file); err != nil {
+			c.logger.Println("Error copying new file", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 
 	http.Redirect(w, r, r.Referer(), http.StatusFound)
