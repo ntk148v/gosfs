@@ -1,0 +1,46 @@
+---
+name: "tagged-release"
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  tagged-release:
+    name: ${{ matrix.os }}-${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [linux, windows, darwin]
+        arch: [386, amd64, arm64]
+        exclude:
+          - arch: "386"
+            os: darwin
+          - arch: arm64
+            os: windows
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17
+
+      - name: Build
+        if: ${{ matrix.os != 'windows' }}
+        run: GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -ldflags "-s -w" -o build/gosfs-${{ matrix.os }}-${{ matrix.arch }}
+
+      - name: Build windows
+        if: ${{ matrix.os == 'windows' }}
+        run: GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -ldflags "-s -w" -o build/gosfs-${{ matrix.os }}-${{ matrix.arch }}.ext
+
+      - name: Release
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: false
+          files: |
+            build/*
