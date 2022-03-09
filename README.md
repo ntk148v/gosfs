@@ -25,7 +25,7 @@
 ## Feature
 
 - Pure Golang
-- Support upload utiple files
+- Support upload mutiple files
 - Support nested directories
 
 ## Getting started
