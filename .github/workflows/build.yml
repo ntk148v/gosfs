@@ -21,9 +21,16 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v3
+
       - name: Setup Go
         uses: actions/setup-go@v2
         with:
           go-version: 1.17
+
       - name: Build
-        run: GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -ldflags "-s -w"
+        if: ${{ matrix.os != 'windows' }}
+        run: GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -ldflags "-s -w" -o build/gosfs-${{ matrix.os }}-${{ matrix.arch }}
+
+      - name: Build windows
+        if: ${{ matrix.os == 'windows' }}
+        run: GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -ldflags "-s -w" -o build/gosfs-${{ matrix.os }}-${{ matrix.arch }}.exe
