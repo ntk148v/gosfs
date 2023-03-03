@@ -105,6 +105,7 @@ func (c *controller) upload(w http.ResponseWriter, r *http.Request) {
 
 	// Get handler for filename, size and headers
 	fhs := r.MultipartForm.File["files"]
+
 	for _, fh := range fhs {
 		if fh.Size > int64(c.maxUploadSize) {
 			w.WriteHeader(http.StatusRequestEntityTooLarge)
@@ -112,7 +113,7 @@ func (c *controller) upload(w http.ResponseWriter, r *http.Request) {
 		}
 		file, err := fh.Open()
 		if err != nil {
-			c.logger.Println("Error retrieveing the file:", err)
+			c.logger.Println("Error retrieving the file:", err)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
