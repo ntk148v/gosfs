@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"io/ioutil"
+	"io/fs"
 	"log"
 	"net/http"
 	"os"
@@ -148,10 +148,21 @@ func (c *controller) listDir(root string) (Dir, error) {
 		DisplayPath: root,
 		Files:       []File{},
 	}
-	files, err := ioutil.ReadDir(root)
+
+	entries, err := os.ReadDir(root)
 	if err != nil {
 		return dir, err
 	}
+
+	files := make([]fs.FileInfo, 0, len(entries))
+	for _, entry := range entries {
+		info, err := entry.Info()
+		if err != nil {
+			continue
+		}
+		files = append(files, info)
+	}
+
 	for _, file := range files {
 		var f File
 		f.ModTime = file.ModTime().Format("2006-01-02 15:04")
