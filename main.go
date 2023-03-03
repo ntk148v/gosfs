@@ -67,7 +67,7 @@ func formatBytes(b int64) string {
 
 func (c *controller) index(w http.ResponseWriter, r *http.Request) {
 	// Ignore favicon
-	if r.URL.Path == "/favicon.io" {
+	if r.URL.Path == "/favicon.ico" {
 		return
 	}
 	// Get path to render subdirectories as well as root
