@@ -77,6 +77,7 @@ func (c *controller) index(w http.ResponseWriter, r *http.Request) {
 	// If there is file type, serve it directly
 	if file != nil && !file.Mode().IsDir() {
 		http.ServeFile(w, r, path)
+		return
 	}
 	// Collect data
 	dir, err := c.listDir(path)
