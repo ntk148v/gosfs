@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"mime/multipart"
+	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
@@ -106,5 +107,36 @@ func TestUploadRejectsTraversalName(t *testing.T) {
 	// Nothing written outside root via the escaping destination.
 	if _, err := os.Stat(filepath.Join(filepath.Dir(root), "esc", "evil.txt")); !os.IsNotExist(err) {
 		t.Errorf("evil file was written outside root")
+	}
+}
+
+func TestIndexViewQueryAndCookie(t *testing.T) {
+	root := t.TempDir()
+	os.WriteFile(filepath.Join(root, "a.txt"), []byte("abc"), 0o644)
+	s := newTestServer(root)
+
+	r := httptest.NewRequest("GET", "/?sort=size&order=desc&hidden=1&bytes=exact", nil)
+	w := httptest.NewRecorder()
+	s.Handler().ServeHTTP(w, r)
+
+	if w.Code != 200 {
+		t.Fatalf("index status %d", w.Code)
+	}
+	var set *http.Cookie
+	for _, c := range w.Result().Cookies() {
+		if c.Name == "gosfs_view" {
+			set = c
+		}
+	}
+	if set == nil {
+		t.Fatal("expected gosfs_view cookie to be set")
+	}
+	if !strings.Contains(set.Value, "sort=size") || !strings.Contains(set.Value, "order=desc") ||
+		!strings.Contains(set.Value, "hidden=1") || !strings.Contains(set.Value, "bytes=exact") {
+		t.Errorf("cookie value malformed: %q", set.Value)
+	}
+	// exact bytes should show "3" not "3 B"
+	if strings.Contains(w.Body.String(), ">3 B<") {
+		t.Errorf("exact bytes rendered human form: %s", w.Body.String())
 	}
 }

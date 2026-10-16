@@ -11,20 +11,6 @@ import (
 	"github.com/ntk148v/gosfs/internal/config"
 )
 
-// File is one entry in a directory listing, passed to the index template.
-type File struct {
-	Link    string
-	Size    string
-	ModTime string
-	Name    string
-}
-
-// Dir is the data model rendered by the directory-listing template.
-type Dir struct {
-	DisplayPath string
-	Files       []File
-}
-
 // Server holds the shared state for all handlers.
 type Server struct {
 	cfg           *config.Config

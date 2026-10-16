@@ -56,6 +56,14 @@
         font-weight: bold;
         color: #e36209;
     }
+
+    .active {
+        color: #d73a49;
+    }
+
+    .controls a {
+        margin-right: 8px;
+    }
 </style>
 
 <body>
@@ -64,6 +72,19 @@
         <input name="files" type="file" multiple />
         <input type="submit" value="upload" />
     </form>
+    <p class="controls">
+        sort:
+        {{ if eq .Sort "name" }}<span class="active">name</span>{{ else }}<a href="?sort=name">name</a>{{ end }}
+        {{ if eq .Sort "time" }}<span class="active">time</span>{{ else }}<a href="?sort=time">time</a>{{ end }}
+        {{ if eq .Sort "size" }}<span class="active">size</span>{{ else }}<a href="?sort=size">size</a>{{ end }}
+        &nbsp;|&nbsp;
+        {{ if eq .Order "desc" }}<span class="active">desc</span>{{ else }}<a href="?order=desc">desc</a>{{ end }}
+        {{ if eq .Order "asc" }}<span class="active">asc</span>{{ else }}<a href="?order=asc">asc</a>{{ end }}
+        &nbsp;|&nbsp;
+        {{ if .ShowHidden }}<span class="active">hidden</span>{{ else }}<a href="?hidden=1">hidden</a>{{ end }}
+        &nbsp;|&nbsp;
+        {{ if .ExactBytes }}<a href="?bytes=human">human</a>{{ else }}<a href="?bytes=exact">exact</a>{{ end }}
+    </p>
     <hr>
     <table>
         <tr>
@@ -71,8 +92,8 @@
         </tr>
         {{ range .Files }}
         <tr>
-            <td><a href="{{ .Name }}">{{ .Name }}</a></td>
-            <td class="size">{{ .Size }}</td>
+            <td>{{ if .IsDir }}<a href="{{ .Name }}/">{{ .Name }}</a>{{ else }}<a href="{{ .Name }}">{{ .Name }}</a>{{ end }}</td>
+            <td class="size">{{ if .IsDir }}-{{ else if $.ExactBytes }}{{ .Bytes }}{{ else }}{{ .Size }}{{ end }}</td>
             <td class="time">{{ .ModTime }}</td>
         </tr>
         {{ end }}
