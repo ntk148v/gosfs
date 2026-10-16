@@ -31,10 +31,12 @@
 ## Getting started
 
 ```bash
-$ go run main.go --help
-Usage of /tmp/go-build2896055445/b001/exe/main:
+$ go run ./cmd/gosfs --help
+Usage of /tmp/go-build123/b001/exe/gosfs:
   -bind-addr string
         IP address to bind (default "0.0.0.0")
+  -dirs-first
+        list directories before files
   -max-size int
         max size of uploaded file (byte) (default 16777216)
   -port int
@@ -42,7 +44,7 @@ Usage of /tmp/go-build2896055445/b001/exe/main:
   -root-dir string
         root directory (default "/tmp/gosfs")
 
-$ go run main.go
+$ go run ./cmd/gosfs
 http: 2022/03/09 17:18:58 Server is starting...
 http: 2022/03/09 17:18:58 Server is ready to handle requests at "0.0.0.0:2690"
 ```
