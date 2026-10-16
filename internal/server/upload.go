@@ -1,11 +1,15 @@
 package server
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 
+	"github.com/ntk148v/gosfs/internal/config"
 	"github.com/ntk148v/gosfs/internal/fsutil"
 )
 
@@ -30,6 +34,11 @@ func (s *Server) upload(w http.ResponseWriter, r *http.Request) {
 		target, err := fsutil.SafeJoin(s.cfg.RootDir, filepath.Join(sub, fh.Filename))
 		if err != nil {
 			http.Error(w, "invalid upload path: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		target, err = s.resolveDup(target)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
@@ -74,4 +83,27 @@ func (s *Server) upload(w http.ResponseWriter, r *http.Request) {
 		dest = "/"
 	}
 	http.Redirect(w, r, dest, http.StatusFound)
+}
+
+// resolveDup returns the path to write an upload to, applying the configured
+// duplicate policy when the target already exists.
+func (s *Server) resolveDup(target string) (string, error) {
+	if _, err := os.Stat(target); os.IsNotExist(err) {
+		return target, nil
+	}
+	switch s.cfg.DupMode {
+	case config.DupOverwrite:
+		return target, nil
+	case config.DupRename:
+		ext := filepath.Ext(target)
+		stem := strings.TrimSuffix(target, ext)
+		for i := 1; ; i++ {
+			candidate := stem + "-" + strconv.Itoa(i) + ext
+			if _, err := os.Stat(candidate); os.IsNotExist(err) {
+				return candidate, nil
+			}
+		}
+	default: // DupError
+		return "", fmt.Errorf("file already exists: %s", filepath.Base(target))
+	}
 }

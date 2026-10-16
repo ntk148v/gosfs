@@ -16,6 +16,15 @@ const (
 	DefaultWriteTimeout  = 10 * time.Second
 )
 
+// DupMode selects how an upload collision with an existing file is handled.
+type DupMode string
+
+const (
+	DupError     DupMode = "error"
+	DupOverwrite DupMode = "overwrite"
+	DupRename    DupMode = "rename"
+)
+
 // Config is the resolved runtime configuration for the server.
 type Config struct {
 	RootDir       string
@@ -25,6 +34,7 @@ type Config struct {
 	ReadTimeout   time.Duration
 	WriteTimeout  time.Duration
 	DirsFirst     bool
+	DupMode       DupMode
 }
 
 // Parse builds a Config from command-line args (excluding the program name).
@@ -36,12 +46,14 @@ func Parse(args []string) (*Config, error) {
 		listenPort    int
 		maxUploadSize int64
 		dirsFirst     bool
+		dupMode       string
 	)
 	fs.StringVar(&rootDir, "root-dir", "/tmp/gosfs", "root directory")
 	fs.StringVar(&bindAddr, "bind-addr", DefaultBindAddr, "IP address to bind")
 	fs.IntVar(&listenPort, "port", DefaultPort, "port number to listen on")
 	fs.Int64Var(&maxUploadSize, "max-size", DefaultMaxUploadSize, "max size of uploaded file (byte)")
 	fs.BoolVar(&dirsFirst, "dirs-first", false, "list directories before files")
+	fs.StringVar(&dupMode, "dup", string(DupError), "duplicate upload: error|overwrite|rename")
 
 	if err := fs.Parse(args); err != nil {
 		return nil, err
@@ -55,6 +67,7 @@ func Parse(args []string) (*Config, error) {
 		ReadTimeout:   DefaultReadTimeout,
 		WriteTimeout:  DefaultWriteTimeout,
 		DirsFirst:     dirsFirst,
+		DupMode:       DupMode(dupMode),
 	}, nil
 }
 

@@ -37,6 +37,8 @@ Usage of /tmp/go-build123/b001/exe/gosfs:
         IP address to bind (default "0.0.0.0")
   -dirs-first
         list directories before files
+  -dup string
+        duplicate upload: error|overwrite|rename (default "error")
   -max-size int
         max size of uploaded file (byte) (default 16777216)
   -port int

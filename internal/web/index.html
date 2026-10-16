@@ -92,12 +92,29 @@
         </tr>
         {{ range .Files }}
         <tr>
-            <td>{{ if .IsDir }}<a href="{{ .Name }}/">{{ .Name }}</a>{{ else }}<a href="{{ .Name }}">{{ .Name }}</a>{{ end }}</td>
+            <td><a href="{{ .Link }}">{{ .Name }}</a></td>
             <td class="size">{{ if .IsDir }}-{{ else if $.ExactBytes }}{{ .Bytes }}{{ else }}{{ .Size }}{{ end }}</td>
             <td class="time">{{ .ModTime }}</td>
+            <td><button onclick="del('{{ .Link }}')">del</button></td>
         </tr>
         {{ end }}
     </table>
+    <p class="controls">
+        download dir:
+        <a href="/archive?path={{ .DisplayPath }}&type=tar">tar</a>
+        <a href="/archive?path={{ .DisplayPath }}&type=tgz">tgz</a>
+        <a href="/archive?path={{ .DisplayPath }}&type=zip">zip</a>
+    </p>
+    <script>
+        function del(link) {
+            if (confirm("Delete " + link + "?")) {
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "/rm?path=" + encodeURIComponent(link), true);
+                xhr.onload = function () { location.reload(); };
+                xhr.send();
+            }
+        }
+    </script>
 </body>
 
 </html>

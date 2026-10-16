@@ -3,6 +3,7 @@ package server
 import (
 	"net/http"
 	"os"
+	"path"
 	"slices"
 	"strings"
 	"time"
@@ -58,13 +59,13 @@ func (s *Server) index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	path, err := fsutil.SafeJoin(s.cfg.RootDir, r.URL.Path)
+	target, err := fsutil.SafeJoin(s.cfg.RootDir, r.URL.Path)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	info, err := os.Stat(path)
+	info, err := os.Stat(target)
 	if os.IsNotExist(err) {
 		http.NotFound(w, r)
 		return
@@ -76,14 +77,14 @@ func (s *Server) index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !info.IsDir() {
-		http.ServeFile(w, r, path)
+		http.ServeFile(w, r, target)
 		return
 	}
 
 	view := s.viewFrom(r)
-	dir, err := s.listDir(path, view.sort, view.order, view.showHidden, s.cfg.DirsFirst)
+	dir, err := s.listDir(target, view.sort, view.order, view.showHidden, s.cfg.DirsFirst)
 	if err != nil {
-		s.logger.Printf("Error listing files in directory %q: %v", path, err)
+		s.logger.Printf("Error listing files in directory %q: %v", target, err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -92,6 +93,13 @@ func (s *Server) index(w http.ResponseWriter, r *http.Request) {
 	dir.Order = string(view.order)
 	dir.ShowHidden = view.showHidden
 	dir.ExactBytes = view.exactBytes
+	for i := range dir.Files {
+		base := strings.TrimSuffix(dir.Files[i].Name, "/")
+		dir.Files[i].Link = path.Join(r.URL.Path, base)
+		if dir.Files[i].IsDir {
+			dir.Files[i].Link += "/"
+		}
+	}
 
 	s.setViewCookie(w, view)
 

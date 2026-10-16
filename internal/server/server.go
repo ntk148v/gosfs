@@ -33,6 +33,8 @@ func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", s.index)
 	mux.HandleFunc("POST /upload", s.upload)
+	mux.HandleFunc("POST /rm", s.rm)
+	mux.HandleFunc("GET /archive", s.archive)
 	mux.HandleFunc("GET /healthz", s.healthz)
 	return middlewares{s.tracing, s.logging}.apply(mux)
 }
