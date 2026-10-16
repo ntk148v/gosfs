@@ -24,11 +24,18 @@
 
 ## Feature
 
-- Pure Golang
-- Support upload mutiple files
+- Pure Golang (stdlib only)
+- Support upload multiple files
 - Support nested directories
+- Directory listing with sorting (name / time / size, asc / desc, directories first)
+- Toggle hidden files and human / exact byte display (persisted in a cookie)
+- Download a directory as an archive (tar / tar.gz / zip)
+- Delete files and directories
+- Upload duplicate handling: error / overwrite / rename-{N}
 
 ## Getting started
+
+Requirements: Go 1.24+
 
 ```bash
 $ go run ./cmd/gosfs --help
